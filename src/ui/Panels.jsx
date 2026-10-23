@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { setState, useGame } from '../engine/store'
-import { setInputEnabled } from '../engine/input'
+import { setInputEnabled, releaseMouse } from '../engine/input'
 import { sfx } from '../audio/sfx'
 import {
   ELEMENTS, identifyAtom, KNOWN_ISOTOPES, ORBITALS, checkConfiguration, configString, checkOctets,
@@ -12,7 +12,7 @@ import {
 
 export default function Panels() {
   const p = useGame((s) => s.panel)
-  useEffect(() => { setInputEnabled(!p); if (p && document.pointerLockElement) document.exitPointerLock() }, [p])
+  useEffect(() => { setInputEnabled(!p); if (p) releaseMouse() }, [p])
   if (!p) return null
   const close = (ok) => { const f = p.onClose; setState({ panel: null }); setTimeout(() => f && f(ok), 0) }
   const C = { atomForge: AtomForge, shells: Shells, octet: OctetBridge, well: EnergyWell, skeleton: Skeleton, hybridCheck: HybridCheck }[p.kind]

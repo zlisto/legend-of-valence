@@ -124,3 +124,19 @@ export function poll() {
 export function peekAdvance() {
   return pressed.has('Space') || pressed.has('Enter') || pressed.has('KeyE')
 }
+
+// Let go of the mouse on purpose (a panel opened, the scene ended) — so the app can tell that apart
+// from the player pressing Esc, which the browser turns into a pointer-lock exit.
+let intentionalRelease = 0
+export function releaseMouse() {
+  if (!document.pointerLockElement) return
+  intentionalRelease = performance.now()
+  document.exitPointerLock()
+}
+export function wasIntentionalRelease() { return performance.now() - intentionalRelease < 600 }
+
+// Capture the mouse for camera look; quietly does nothing where the browser refuses (embedded views, too soon after Esc).
+export function captureMouse(el) {
+  if (!el || !el.requestPointerLock || document.pointerLockElement) return
+  try { const r = el.requestPointerLock(); if (r && r.catch) r.catch(() => {}) } catch { /* not allowed here */ }
+}

@@ -92,10 +92,12 @@ export default function Player({ world, start = [0, 0, 0], startFacing = 0 }) {
       cam.pitch = THREE.MathUtils.clamp(cam.pitch + inp.lookY, -0.15, 1.1)
     }
 
-    // ---- stance (Hybrid Crystal)
-    if (!busy && inp.stance && gs.save.hasCrystal) {
+    // ---- stance (Hybrid Crystal): R cycles, or the item menu asks for one (stanceRequest)
+    const req = gs.stanceRequest
+    if (req) setState({ stanceRequest: null })
+    if (!busy && ((inp.stance && gs.save.hasCrystal) || (req && req !== gs.stance))) {
       const order = ['sp3', 'sp2', 'sp']
-      const next = order[(order.indexOf(gs.stance) + 1) % 3]
+      const next = req || order[(order.indexOf(gs.stance) + 1) % 3]
       // can't stand up from sp2 under a low ceiling
       if (gs.stance === 'sp2' && world.ceilingAt && world.ceilingAt(s.pos.x, s.pos.z, s.pos.y) < s.pos.y + 1.8) {
         toast('Too low to stand here — stay flat (sp²).', 'warn', 1500)

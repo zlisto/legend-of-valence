@@ -39,6 +39,8 @@ let state = {
   bossHp: null, // { name, hp, max }
   paused: false,
   mapOpen: false, // full map overlay (M)
+  menuTab: 'items', // item menu (Esc / P) — shown while paused
+  stanceRequest: null, // a stance picked in the item menu, applied by the Player on resume
   fade: 0,
 }
 const subs = new Set()

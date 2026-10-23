@@ -59,26 +59,11 @@ export default function HUD({ scene }) {
             <tr><td>Hybrid stance (sp³ → sp² → sp)</td><td>R · Y</td></tr>
             <tr><td>sp dash (in sp stance)</td><td>Space</td></tr>
             <tr><td>Map (shows where to go next)</td><td>M</td></tr>
-            <tr><td>Release mouse / pause</td><td>Esc</td></tr>
+            <tr><td>Item menu · pause (items, notes, quest)</td><td>Esc / P</td></tr>
           </tbody></table>
           <p className="small">Click to close.</p>
         </div>
       )}
-    </div>
-  )
-}
-
-export function PauseMenu({ onTitle }) {
-  const paused = useGame((s) => s.paused)
-  if (!paused) return null
-  return (
-    <div className="pause">
-      <div className="pbox">
-        <h2>Paused</h2>
-        <button onClick={() => setState({ paused: false })}>Resume</button>
-        <button onClick={() => { setState({ paused: false }); onTitle() }}>Back to title</button>
-        <p className="small">Progress saves automatically at checkpoints.</p>
-      </div>
     </div>
   )
 }

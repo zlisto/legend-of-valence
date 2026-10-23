@@ -1,11 +1,12 @@
 import { Component, useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { getState, setState, useGame, resetSave, saveGame } from './engine/store'
-import { initInput } from './engine/input'
+import { initInput, releaseMouse, wasIntentionalRelease, captureMouse } from './engine/input'
 import Intro, { IntroScene } from './scenes/Intro'
 import Village from './scenes/Village'
 import Caverns from './scenes/Caverns'
-import HUD, { PauseMenu, Fade } from './ui/HUD'
+import HUD, { Fade } from './ui/HUD'
+import ItemMenu from './ui/ItemMenu'
 import Dialogue from './ui/Dialogue'
 import Panels from './ui/Panels'
 import { MiniMap, FullMap } from './ui/MapView'
@@ -74,6 +75,7 @@ function Credits({ onTitle, onKeep }) {
 export default function App() {
   const screen = useGame((s) => s.screen)
   const mapOpen = useGame((s) => s.mapOpen)
+  const paused = useGame((s) => s.paused)
   const [sceneKey, setSceneKey] = useState(0)
   const wrap = useRef()
 
@@ -84,19 +86,37 @@ export default function App() {
     const click = () => {
       const s = getState()
       const playing = s.screen === 'village' || s.screen === 'caverns'
-      if (playing && !s.dialogue && !s.panel && !s.paused && !document.pointerLockElement && el.requestPointerLock) el.requestPointerLock()
+      if (playing && !s.dialogue && !s.panel && !s.paused && !s.mapOpen) captureMouse(el)
+    }
+    const inGame = (s) => s.screen === 'village' || s.screen === 'caverns'
+    // The item menu is the pause screen. Esc while the mouse is captured never reaches the page
+    // (the browser spends it on releasing the mouse), so a release we didn't ask for opens the menu.
+    let lastUnlock = 0
+    const openMenu = (s) => { if (inGame(s) && !s.dialogue && !s.panel && !s.paused && !s.fade) setState({ paused: true, mapOpen: false }) }
+    const lockChange = () => {
+      if (document.pointerLockElement) return
+      lastUnlock = performance.now()
+      const s = getState()
+      if (wasIntentionalRelease()) return
+      if (s.mapOpen) { setState({ mapOpen: false }); return }
+      openMenu(s)
     }
     const key = (e) => {
       const s = getState()
-      if (e.code === 'KeyP') { if (!s.dialogue && !s.panel) setState({ paused: !s.paused }) }
-      if (e.code === 'KeyM' && (s.screen === 'village' || s.screen === 'caverns') && !s.panel && !s.paused) setState({ mapOpen: !s.mapOpen })
-      if (e.code === 'Escape' && s.mapOpen) setState({ mapOpen: false })
+      if (e.code === 'KeyP' || e.code === 'Escape') {
+        if (e.code === 'Escape' && performance.now() - lastUnlock < 400) return // already handled as the mouse release
+        if (s.mapOpen) { setState({ mapOpen: false }); return }
+        if (s.paused) { setState({ paused: false }); captureMouse(el) }
+        else openMenu(s)
+      }
+      if (e.code === 'KeyM' && inGame(s) && !s.panel && !s.paused) setState({ mapOpen: !s.mapOpen })
     }
     el.addEventListener('click', click)
     window.addEventListener('keydown', key)
-    return () => { off(); el.removeEventListener('click', click); window.removeEventListener('keydown', key) }
+    document.addEventListener('pointerlockchange', lockChange)
+    return () => { off(); el.removeEventListener('click', click); window.removeEventListener('keydown', key); document.removeEventListener('pointerlockchange', lockChange) }
   }, [])
-  useEffect(() => { if (screen !== 'village' && screen !== 'caverns' && document.pointerLockElement) document.exitPointerLock() }, [screen])
+  useEffect(() => { if (screen !== 'village' && screen !== 'caverns') releaseMouse() }, [screen])
 
   const go = (next) => {
     setState({ fade: 1 })
@@ -120,7 +140,7 @@ export default function App() {
     <div className="app">
       <div ref={wrap} className="screen" style={{ visibility: show3d ? 'visible' : 'hidden' }}>
         <SceneGuard onReset={() => go('title')}>
-        <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 50, near: 0.1, far: 300, position: [0, 4, 16] }} gl={{ antialias: true, powerPreference: 'high-performance' }} frameloop={show3d && !mapOpen ? 'always' : 'never'}>
+        <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 50, near: 0.1, far: 300, position: [0, 4, 16] }} gl={{ antialias: true, powerPreference: 'high-performance' }} frameloop={show3d && !mapOpen && !paused ? 'always' : 'never'}>
           {screen === 'intro' && <IntroScene />}
           {screen === 'village' && <Village key={sceneKey} onExit={(to) => { saveGame({ checkpoint: { scene: 'caverns', room: 'entrance' } }); go(to) }} />}
           {screen === 'caverns' && <Caverns key={sceneKey} onExit={(to) => go(to)} />}
@@ -135,7 +155,7 @@ export default function App() {
       {playing && <MiniMap />}
       {playing && <FullMap />}
       <Dialogue />
-      <PauseMenu onTitle={() => go('title')} />
+      {playing && <ItemMenu onTitle={() => go('title')} onResume={() => captureMouse(wrap.current)} />}
       <Fade />
     </div>
   )
