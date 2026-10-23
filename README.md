@@ -17,6 +17,7 @@ Kai is a carbon knight with four bond sockets. He explores the kingdom to recove
 | Block | Shift |
 | Change hybrid shape (sp³ / sp² / sp) | R |
 | Talk / use | E |
+| Map (shows where to go next) | M |
 | Pause | P |
 
 Gamepads work too.

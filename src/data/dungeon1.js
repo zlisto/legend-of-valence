@@ -37,3 +37,24 @@ export const FORGE = {
 }
 
 export const BOSS = { center: [0, 0, -143], radius: 13.5 }
+
+// Where the map points next: the first goal whose `id` isn't solved yet (ids are save.solved keys).
+export const GOALS = [
+  { id: 'met-aufbau', pos: [3, -9], label: 'Talk to Sage Aufbau' },
+  { id: '1-1a', pos: STATIONS['1-1a'].pos, label: 'Forge a carbon atom' },
+  { id: '1-1b', pos: STATIONS['1-1b'].pos, label: 'Forge carbon-13' },
+  { id: '1-2C', pos: STATIONS['1-2C'].pos, label: 'Light the carbon lamps' },
+  { id: '1-2N', pos: STATIONS['1-2N'].pos, label: 'Light the nitrogen lamps' },
+  { id: '1-2O', pos: STATIONS['1-2O'].pos, label: 'Light the oxygen lamps' },
+  { id: '1-3well', pos: STATIONS['1-3well'].pos, label: 'Find the bond length' },
+  { id: '1-3b0', pos: STATIONS['1-3b0'].pos, label: 'Raise bridge stone I' },
+  { id: '1-3b1', pos: STATIONS['1-3b1'].pos, label: 'Raise bridge stone II' },
+  { id: '1-3b2', pos: STATIONS['1-3b2'].pos, label: 'Raise bridge stone III' },
+  { id: '1-3wolves', pos: [0, -71.8], label: 'Pair off the radical wolves' },
+  { id: '1-4crystal', pos: FORGE.crystalAt, label: 'Take the Hybrid Crystal' },
+  { id: '1-4tetra', pos: FORGE.tetraPlate, label: 'Stand on the tetrahedral seal (sp³)' },
+  { id: '1-4pi', pos: FORGE.piPillars[0], label: 'Turn both p orbitals upright' },
+  { id: '1-5a', pos: STATIONS['1-5a'].pos, label: 'Study the isoprene painting' },
+  { id: '1-5b', pos: STATIONS['1-5b'].pos, label: 'Study the methylcyclohexane painting' },
+  { id: 'boss', pos: BOSS.center, label: 'Defeat the Unbonded Colossus' },
+].map((g) => ({ ...g, pos: g.pos.length === 3 ? [g.pos[0], g.pos[2]] : g.pos }))

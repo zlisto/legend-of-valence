@@ -58,6 +58,7 @@ export default function HUD({ scene }) {
             <tr><td>Interact / talk</td><td>E · A</td></tr>
             <tr><td>Hybrid stance (sp³ → sp² → sp)</td><td>R · Y</td></tr>
             <tr><td>sp dash (in sp stance)</td><td>Space</td></tr>
+            <tr><td>Map (shows where to go next)</td><td>M</td></tr>
             <tr><td>Release mouse / pause</td><td>Esc</td></tr>
           </tbody></table>
           <p className="small">Click to close.</p>

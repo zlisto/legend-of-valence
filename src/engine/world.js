@@ -16,6 +16,8 @@ export function createWorld() {
     events: [],
     killY: -12,
     respawn: [0, 0, 0],
+    // set by each scene for the map: { floor, wall, labels: [{ pos:[x,z], text }], goal: () => ({ pos:[x,z], label }) | null }
+    map: null,
   }
 
   w.addSolid = (min, max) => { const id = nextId++; w.solids.set(id, { min, max, enabled: true }); return id }

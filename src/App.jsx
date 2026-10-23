@@ -8,6 +8,7 @@ import Caverns from './scenes/Caverns'
 import HUD, { PauseMenu, Fade } from './ui/HUD'
 import Dialogue from './ui/Dialogue'
 import Panels from './ui/Panels'
+import { MiniMap, FullMap } from './ui/MapView'
 import { playMusic, stopMusic, sfx } from './audio/sfx'
 
 // If a 3D scene throws, show a way back instead of a black screen.
@@ -72,6 +73,7 @@ function Credits({ onTitle, onKeep }) {
 
 export default function App() {
   const screen = useGame((s) => s.screen)
+  const mapOpen = useGame((s) => s.mapOpen)
   const [sceneKey, setSceneKey] = useState(0)
   const wrap = useRef()
 
@@ -84,7 +86,12 @@ export default function App() {
       const playing = s.screen === 'village' || s.screen === 'caverns'
       if (playing && !s.dialogue && !s.panel && !s.paused && !document.pointerLockElement && el.requestPointerLock) el.requestPointerLock()
     }
-    const key = (e) => { if (e.code === 'KeyP') { const s = getState(); if (!s.dialogue && !s.panel) setState({ paused: !s.paused }) } }
+    const key = (e) => {
+      const s = getState()
+      if (e.code === 'KeyP') { if (!s.dialogue && !s.panel) setState({ paused: !s.paused }) }
+      if (e.code === 'KeyM' && (s.screen === 'village' || s.screen === 'caverns') && !s.panel && !s.paused) setState({ mapOpen: !s.mapOpen })
+      if (e.code === 'Escape' && s.mapOpen) setState({ mapOpen: false })
+    }
     el.addEventListener('click', click)
     window.addEventListener('keydown', key)
     return () => { off(); el.removeEventListener('click', click); window.removeEventListener('keydown', key) }
@@ -94,7 +101,7 @@ export default function App() {
   const go = (next) => {
     setState({ fade: 1 })
     setTimeout(() => {
-      setState({ screen: next, fade: 0, prompt: null, dialogue: null, panel: null, lockTarget: null, bossHp: null, hp: getState().maxHp, paused: false })
+      setState({ screen: next, fade: 0, prompt: null, dialogue: null, panel: null, lockTarget: null, bossHp: null, hp: getState().maxHp, paused: false, mapOpen: false })
       setSceneKey((k) => k + 1)
     }, 450)
   }
@@ -113,7 +120,7 @@ export default function App() {
     <div className="app">
       <div ref={wrap} className="screen" style={{ visibility: show3d ? 'visible' : 'hidden' }}>
         <SceneGuard onReset={() => go('title')}>
-        <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 50, near: 0.1, far: 300, position: [0, 4, 16] }} gl={{ antialias: true, powerPreference: 'high-performance' }} frameloop={show3d ? 'always' : 'never'}>
+        <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 50, near: 0.1, far: 300, position: [0, 4, 16] }} gl={{ antialias: true, powerPreference: 'high-performance' }} frameloop={show3d && !mapOpen ? 'always' : 'never'}>
           {screen === 'intro' && <IntroScene />}
           {screen === 'village' && <Village key={sceneKey} onExit={(to) => { saveGame({ checkpoint: { scene: 'caverns', room: 'entrance' } }); go(to) }} />}
           {screen === 'caverns' && <Caverns key={sceneKey} onExit={(to) => go(to)} />}
@@ -125,6 +132,8 @@ export default function App() {
       {screen === 'credits' && <Credits onTitle={() => go('title')} onKeep={() => go('caverns')} />}
       {playing && <HUD />}
       {playing && <Panels />}
+      {playing && <MiniMap />}
+      {playing && <FullMap />}
       <Dialogue />
       <PauseMenu onTitle={() => go('title')} />
       <Fade />

@@ -10,7 +10,7 @@ import Colossus from '../actors/Colossus'
 import { PiFollower } from './Village'
 import { getState, setState, saveGame, markSolved, say, toast, openPanel, useGame } from '../engine/store'
 import { playMusic, sfx } from '../audio/sfx'
-import { ROOMS, STATIONS, FORGE, BOSS } from '../data/dungeon1'
+import { ROOMS, STATIONS, FORGE, BOSS, GOALS } from '../data/dungeon1'
 
 // Dungeon 1 — The Orbital Caverns (Chapter 1). Teach → practice → twist → master in each chamber.
 
@@ -186,6 +186,22 @@ function CavernsLevel({ world, onExit }) {
   const met = !!solved['met-aufbau']
   const busy = useRef(false)
   const gateOpen = (room) => room.exitNeeds.every((id) => solved[id])
+
+  // the map: room names, and the first unsolved goal (then the shard)
+  useEffect(() => {
+    world.map = {
+      floor: '#3b3850', wall: '#14121c', pit: '#06050a',
+      labels: ROOMS.map((r) => ({ pos: [r.id === 'boss' ? 0 : -W + 0.6, (r.z[0] + r.z[1]) / 2], text: r.title, align: r.id === 'boss' ? 'center' : 'left' })),
+      goal: () => {
+        const sv = getState().save
+        const g = GOALS.find((x) => !sv.solved[x.id])
+        if (g) return g
+        if (sv.shards < 1) return { pos: [BOSS.center[0], BOSS.center[2]], label: 'Take the Bond Shard' }
+        return null
+      },
+    }
+    return () => { world.map = null }
+  }, [world])
 
   useEffect(() => {
     world.ceilingY = 9

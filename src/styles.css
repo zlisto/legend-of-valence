@@ -121,3 +121,26 @@ button { font: inherit; }
 .cbox h1 { font-family: var(--display); color: var(--gold); }
 .cbox li { margin: .35rem 0; color: var(--soft); }
 .overlay-click { position: fixed; inset: 0; cursor: pointer; }
+
+/* ---------- map ---------- */
+.minimap { position: fixed; right: 16px; bottom: 16px; width: 168px; height: 168px; border-radius: 12px; overflow: hidden; border: 2px solid rgba(232,196,106,.55); box-shadow: 0 6px 20px rgba(0,0,0,.45); cursor: pointer; z-index: 12; background: #07060b; }
+.minimap canvas { display: block; }
+.minimap .mm-n { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font: 700 11px Inter, system-ui, sans-serif; color: var(--gold, #e8c46a); text-shadow: 0 1px 2px #000; }
+.minimap .mm-key { position: absolute; bottom: 4px; right: 6px; font-size: .72rem; color: #ddd; text-shadow: 0 1px 2px #000; }
+.fullmap { position: fixed; inset: 0; background: rgba(4,3,8,.72); z-index: 40; align-items: center; justify-content: center; padding: 16px; }
+.fm-box { width: min(980px, 100%); height: min(720px, 100%); display: flex; flex-direction: column; background: #100e18; border: 1px solid rgba(232,196,106,.4); border-radius: 14px; overflow: hidden; }
+.fm-head { display: flex; align-items: center; gap: 1rem; padding: .6rem .9rem; border-bottom: 1px solid #2a2636; color: #eee; }
+.fm-head b { font-family: Cinzel, serif; color: var(--gold, #e8c46a); letter-spacing: .04em; }
+.fm-goal { flex: 1; color: #ffe9a8; font-size: .92rem; }
+.fm-head button { background: #231f30; color: #ddd; border: 1px solid #3a3448; border-radius: 6px; padding: .3rem .6rem; cursor: pointer; }
+.fm-canvas { flex: 1; min-height: 0; position: relative; }
+.fm-canvas canvas { display: block; }
+.fm-legend { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; padding: .55rem .9rem; border-top: 1px solid #2a2636; font-size: .8rem; color: #bbb; }
+.fm-legend .lg { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .35rem; vertical-align: -1px; }
+.lg.kai { background: #fff; box-shadow: 0 0 0 2px #43e6f5; }
+.lg.goal { background: #ffd76a; border-radius: 2px; transform: rotate(45deg); }
+.lg.st { background: #43e6f5; }
+.lg.en { background: #c070ff; }
+.lg.low { border: 1px dashed #43e6f5; border-radius: 2px; }
+@media (max-width: 640px) { .minimap { width: 120px; height: 120px; } }
+.fm-hint { color: #888; font-size: .78rem; }

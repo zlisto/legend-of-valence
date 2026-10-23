@@ -38,6 +38,7 @@ let state = {
   lockTarget: null,
   bossHp: null, // { name, hp, max }
   paused: false,
+  mapOpen: false, // full map overlay (M)
   fade: 0,
 }
 const subs = new Set()

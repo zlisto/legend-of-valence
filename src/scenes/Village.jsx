@@ -120,6 +120,39 @@ function VillageLevel({ world, onExit }) {
   const [wolvesOn, setWolvesOn] = useState(save.well && !save.wolvesCleared)
   const [quest, setQuest] = useState(save.well ? 'done' : 'none') // none | gather | done
   const busyRef = useRef(false)
+  // the map: points at whatever the quest needs next
+  const live = useRef({})
+  live.current = { quest, taken }
+  useEffect(() => {
+    world.map = {
+      floor: '#6f9a55', wall: '#4a4038', pit: '#2a3a2a',
+      labels: [
+        { pos: [WELL[0], WELL[2] + 2.2], text: 'Well', align: 'center' },
+        { pos: [CAVE[0], CAVE[2] - 4.5], text: 'Orbital Caverns', align: 'center' },
+        { pos: [-4, 15.5], text: 'Hydrogen Village', align: 'center' },
+      ],
+      goal: () => {
+        const s = getState()
+        const { quest: q, taken: tk } = live.current
+        if (!s.save.well) {
+          if (q === 'none') return { pos: [WELL[0] - 4.2, WELL[2] + 2.6], label: 'Talk to Elder Proton' }
+          if (s.sockets.length >= 4) return { pos: [WELL[0], WELL[2]], label: 'Seal the well with CH₄' }
+          const p = world.player ? world.player.pos : { x: 0, z: 0 }
+          const left = LOOSE_H.filter((_, i) => !tk[i])
+          if (!left.length) return { pos: [WELL[0], WELL[2]], label: 'Back to the well' }
+          const near = left.reduce((a, b) => (Math.hypot(a[0] - p.x, a[1] - p.z) < Math.hypot(b[0] - p.x, b[1] - p.z) ? a : b))
+          return { pos: near, label: `Bond a loose hydrogen (${s.sockets.length}/4)` }
+        }
+        if (!s.save.wolvesCleared) {
+          const wolves = [...world.targets.values()].filter((t) => t.alive())
+          if (wolves.length) { const w = wolves[0].pos(); return { pos: [w[0], w[2]], label: 'Drive off the Radical Wolves' } }
+          return { pos: [5, 4], label: 'Drive off the Radical Wolves' }
+        }
+        return { pos: [CAVE[0], CAVE[2] - 5], label: 'Enter the Orbital Caverns' }
+      },
+    }
+    return () => { world.map = null }
+  }, [world])
 
   // boundary walls + cave hill
   useEffect(() => {
