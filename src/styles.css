@@ -429,3 +429,54 @@ button { font: inherit; }
 .ending-worlds li::marker { color: var(--gold); }
 .ending-screen .title-buttons { justify-content: center; }
 @media (max-width: 420px) { .ending-worlds { columns: 1; } }
+
+/* ---------------------------------------------------------------- touch (phones and tablets) */
+body.is-touch { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+body.is-touch canvas { touch-action: none; }
+body.is-touch .screen { touch-action: none; }
+.touch { position: fixed; inset: 0; z-index: 11; pointer-events: none; }
+.tc-look { position: absolute; inset: 0; pointer-events: auto; touch-action: none; }
+.tc-stickzone { position: absolute; left: 0; bottom: 0; width: 42vw; height: 62vh; pointer-events: auto; touch-action: none; }
+.tc-stick { position: absolute; left: calc(env(safe-area-inset-left) + 40px); bottom: 40px; width: 112px; height: 112px; border-radius: 50%; background: rgba(10,8,16,.35); border: 2px solid rgba(200,208,255,.45); opacity: .45; transition: opacity .15s; }
+.tc-knob { position: absolute; left: 31px; top: 31px; width: 50px; height: 50px; border-radius: 50%; background: rgba(200,208,255,.55); border: 2px solid rgba(255,255,255,.7); }
+.tc-right { position: absolute; right: calc(env(safe-area-inset-right) + 14px); bottom: calc(env(safe-area-inset-bottom) + 14px); display: flex; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: none; }
+.tc-right > div { display: flex; gap: 10px; align-items: flex-end; }
+.tc-btn { pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent; border-radius: 50%; width: 58px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,8,16,.55); color: #e8ecff; border: 2px solid rgba(200,208,255,.5); font: 600 .74rem 'IBM Plex Sans', sans-serif; line-height: 1.05; padding: 0; }
+.tc-btn small { font-size: .62rem; opacity: .8; font-weight: 500; }
+.tc-btn:active { background: rgba(110,200,255,.45); }
+.tc-btn.on { border-color: var(--gold, #e8c46a); color: var(--gold, #e8c46a); }
+.tc-attack { width: 84px; height: 84px; font-size: .9rem; border-color: rgba(255,120,120,.75); background: rgba(80,16,24,.55); }
+.tc-roll { width: 66px; height: 66px; }
+.tc-block { width: 58px; height: 58px; }
+.tc-e { width: 66px; height: 66px; border-color: var(--cyan, #6ee0ff); background: rgba(14,60,80,.6); }
+.tc-g { border-color: var(--gold, #e8c46a); background: rgba(70,50,10,.6); }
+.tc-g.rev { opacity: .85; }
+.tc-hook { border-color: #c070ff; }
+body.is-touch .minimap { right: auto; left: calc(env(safe-area-inset-left) + 12px); top: 120px; bottom: auto; width: 96px; height: 96px; z-index: 12; }
+body.is-touch .minimap .mm-key { display: none; }
+body.is-touch .prompt { bottom: auto; top: 30vh; }
+body.is-touch .prompt .key { display: none; }
+body.is-touch .hud-buttons button { padding: .45rem .8rem; font-size: .82rem; }
+body.is-touch .help { max-height: 90vh; overflow-y: auto; }
+@media (max-height: 500px) {
+  body.is-touch .tc-btn { width: 50px; height: 50px; font-size: .68rem; }
+  body.is-touch .tc-attack { width: 72px; height: 72px; }
+  body.is-touch .tc-roll, body.is-touch .tc-e { width: 58px; height: 58px; }
+  body.is-touch .tc-right, body.is-touch .tc-right > div { gap: 7px; }
+  body.is-touch .minimap { top: 96px; width: 80px; height: 80px; }
+  body.is-touch .toast { top: 10vh; font-size: .85rem; }
+}
+.fm-zoom { display: inline-flex; gap: 6px; margin-left: auto; }
+.fm-zoom button { width: 40px; height: 34px; font-size: 1.1rem; }
+@media (max-width: 520px) {
+  body.is-touch .hud-tr { max-width: 64vw; }
+  body.is-touch .hud-buttons button { white-space: nowrap; padding: .35rem .55rem; font-size: .72rem; }
+  body.is-touch .objective { font-size: .78rem; }
+}
+/* touch fixes: HUD buttons above the look layer; minimap clear of the stance badge and Newman HUD; boss bar clear of the buttons */
+.hud { z-index: 12; }
+body.is-touch .minimap { top: 116px; }
+body.is-touch.tc-newman .minimap { display: none; }
+body.is-touch .bossbar { bottom: calc(env(safe-area-inset-bottom) + 14px); top: auto; left: 50%; transform: translateX(-50%); width: 34vw; }
+@media (max-height: 500px) { body.is-touch .minimap { top: 114px; } }
+@media (max-width: 520px) { body.is-touch .bossbar { top: auto; bottom: 252px; left: 16px; right: 16px; transform: none; width: auto; } }

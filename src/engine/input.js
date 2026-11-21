@@ -18,6 +18,25 @@ let enabled = true
 let cursorX = 0.5 // where the free (uncaptured) cursor sits across the window, 0..1
 let overGame = false
 const gpPrev = {}
+// touch: an on-screen stick, a drag-to-look area and buttons (see ui/TouchControls.jsx)
+const touch = { mx: 0, my: 0, dx: 0, dy: 0, rev: false }
+export const isTouch = typeof window !== 'undefined' && (/[?&]touch(&|=|$)/.test(window.location.search) || (!!window.matchMedia?.('(pointer: coarse)').matches && !/[?&]desktop(&|=|$)/.test(window.location.search)))
+export function touchStick(x, y) { touch.mx = x; touch.my = y }
+export function touchLook(dx, dy) { touch.dx += dx; touch.dy += dy }
+/** A touch button acts like its key: the same events reach every listener (dialogue, pause, map). */
+export function touchKey(code, isDown) {
+  window.dispatchEvent(new KeyboardEvent(isDown ? 'keydown' : 'keyup', { code, key: code, bubbles: true }))
+}
+export function touchLanternRev(v) { touch.rev = v }
+/** Let go of everything the touch controls hold (a button vanished, or the overlay hid mid-press). */
+export function touchReleaseAll() {
+  for (const c of ['KeyE', 'KeyG', 'KeyQ', 'KeyR', 'Tab', 'Space', 'ShiftLeft']) keys.delete(c)
+  if (lmb) { lmb = false; lmbReleased = true }
+  touch.mx = touch.my = 0; touch.rev = false
+}
+export function touchAttack(isDown) {
+  if (isDown) { lmb = true; lmbPressed = true } else if (lmb) { lmb = false; lmbReleased = true }
+}
 
 function down(code) {
   if (!keys.has(code)) pressed.add(code)
@@ -38,15 +57,17 @@ export function initInput(target) {
     if (overGame && !lmb) { mouseDX += e.movementX; mouseDY += e.movementY }
   }
   const md = (e) => {
+    if (isTouch) return
     if (e.button === 0) { lmb = true; lmbPressed = true }
     if (e.button === 2) { rmb = true; rmbPressed = true }
   }
   const mu = (e) => {
+    if (isTouch) return
     if (e.button === 0) { lmb = false; lmbReleased = true }
     if (e.button === 2) rmb = false
   }
   const cm = (e) => e.preventDefault()
-  const blur = () => { keys.clear(); lmb = rmb = false }
+  const blur = () => { keys.clear(); lmb = rmb = false; touch.mx = touch.my = 0 }
   window.addEventListener('keydown', kd)
   window.addEventListener('keyup', ku)
   window.addEventListener('mousemove', mm)
@@ -70,7 +91,7 @@ export function initInput(target) {
 
 export function setInputEnabled(v) {
   enabled = v
-  if (!v) { keys.clear(); lmb = rmb = false; overGame = false }
+  if (!v) { keys.clear(); lmb = rmb = false; overGame = false; touch.mx = touch.my = 0 }
 }
 
 const DEAD = 0.18
@@ -108,10 +129,10 @@ export function poll() {
   const k = (c) => keys.has(c)
   const p = (c) => pressed.has(c)
   const out = {
-    moveX: (k('KeyD') || k('ArrowRight') ? 1 : 0) - (k('KeyA') || k('ArrowLeft') ? 1 : 0) + g.mx,
-    moveY: (k('KeyS') || k('ArrowDown') ? 1 : 0) - (k('KeyW') || k('ArrowUp') ? 1 : 0) + g.my,
-    lookX: mouseDX * 0.0024 + edgeTurn() + g.cx * 0.05 + ((k('KeyL') ? 1 : 0) - (k('KeyJ') ? 1 : 0)) * 0.035,
-    lookY: mouseDY * 0.0018 + g.cy * 0.03,
+    moveX: (k('KeyD') || k('ArrowRight') ? 1 : 0) - (k('KeyA') || k('ArrowLeft') ? 1 : 0) + g.mx + touch.mx,
+    moveY: (k('KeyS') || k('ArrowDown') ? 1 : 0) - (k('KeyW') || k('ArrowUp') ? 1 : 0) + g.my + touch.my,
+    lookX: (mouseDX + touch.dx * 1.6) * 0.0024 + edgeTurn() + g.cx * 0.05 + ((k('KeyL') ? 1 : 0) - (k('KeyJ') ? 1 : 0)) * 0.035,
+    lookY: (mouseDY + touch.dy * 1.6) * 0.0018 + g.cy * 0.03,
     attack: lmb || g.attack,
     attackPressed: lmbPressed || p('KeyF') || g.attackP,
     attackReleased: lmbReleased || g.attackR,
@@ -124,7 +145,7 @@ export function poll() {
     hook: p('KeyQ') || !!g.hookP,
     lantern: p('KeyG') || !!g.lanternP,
     // Shift+G (or LB while blocking) turns the Lantern the other way
-    lanternRev: k('ShiftLeft') || k('ShiftRight') || g.block,
+    lanternRev: k('ShiftLeft') || k('ShiftRight') || g.block || touch.rev,
     item: ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex((c) => p(c)),
     advance: p('Space') || p('Enter') || p('KeyE') || g.roll,
     pause: p('Escape') || p('KeyP'),
@@ -133,6 +154,7 @@ export function poll() {
   if (len > 1) { out.moveX /= len; out.moveY /= len }
   pressed.clear()
   mouseDX = mouseDY = 0
+  touch.dx = touch.dy = 0
   lmbPressed = lmbReleased = rmbPressed = false
   if (!enabled) {
     return { ...out, moveX: 0, moveY: 0, lookX: 0, lookY: 0, attack: false, attackPressed: false, attackReleased: false, roll: false, lockHeld: false, lockPressed: false, block: false, stance: false, interact: false, hook: false, lantern: false, item: -1 }
@@ -157,6 +179,7 @@ export function wasIntentionalRelease() { return performance.now() - intentional
 
 // Capture the mouse for camera look; quietly does nothing where the browser refuses (embedded views, too soon after Esc).
 export function captureMouse(el) {
+  if (isTouch) return
   if (!el || !el.requestPointerLock || document.pointerLockElement) return
   try { const r = el.requestPointerLock(); if (r && r.catch) r.catch(() => {}) } catch { /* not allowed here */ }
 }

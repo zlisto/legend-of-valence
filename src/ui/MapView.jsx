@@ -1,3 +1,4 @@
+import { isTouch } from '../engine/input'
 import { useEffect, useRef } from 'react'
 import { getActiveWorld } from '../engine/active'
 import { getState, setState, useGame } from '../engine/store'
@@ -194,7 +195,7 @@ export function FullMap() {
   return (
     <div className="fullmap" style={{ display: open ? 'flex' : 'none' }} onClick={() => setState({ mapOpen: false })}>
       <div className="fm-box" onClick={(e) => e.stopPropagation()}>
-        <div className="fm-head"><b>Map</b><span className="fm-goal">Next: <span ref={goalRef} /></span><span className="fm-hint">scroll to zoom</span><button onClick={() => setState({ mapOpen: false })}>Close <span className="key">M</span></button></div>
+        <div className="fm-head"><b>Map</b><span className="fm-goal">Next: <span ref={goalRef} /></span>{isTouch ? <span className="fm-zoom"><button onClick={() => { zoom.current = Math.min(14, zoom.current * 1.4) }}>＋</button><button onClick={() => { zoom.current = Math.max(0.05, zoom.current / 1.4) }}>－</button></span> : <span className="fm-hint">scroll to zoom</span>}<button onClick={() => setState({ mapOpen: false })}>Close {!isTouch && <span className="key">M</span>}</button></div>
         <div className="fm-canvas" onWheel={onWheel}><canvas ref={ref} style={{ width: '100%', height: '100%' }} /></div>
         <div className="fm-legend">
           <span><i className="lg kai" /> Kai (cone = facing)</span><span><i className="lg goal" /> Go here next</span>

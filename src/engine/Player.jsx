@@ -477,7 +477,8 @@ export default function Player({ world, start = [0, 0, 0], startFacing = 0 }) {
       }
     }
     const lprompt = lt ? (typeof lt.label === 'function' ? lt.label() : lt.label) : null
-    if (gs.lanternPrompt !== lprompt) setState({ lanternPrompt: lprompt })
+    const lneeds = lt ? (lt.needs || 'hasLantern') : null
+    if (gs.lanternPrompt !== lprompt || gs.lanternNeeds !== lneeds) setState({ lanternPrompt: lprompt, lanternNeeds: lneeds })
     if (lt && inp.lantern && !busy) { sfx('stance'); lt.onLantern(inp.lanternRev ? -1 : 1) }
 
     // ---- pose

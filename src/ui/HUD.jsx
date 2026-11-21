@@ -4,6 +4,7 @@ import { STANCE } from '../engine/Player'
 import { setMuted, isMuted } from '../audio/sfx'
 import { useEffect, useState } from 'react'
 import NewmanHud from './Newman'
+import { isTouch } from '../engine/input'
 
 function Hearts({ hp, max }) {
   const hearts = []
@@ -50,12 +51,22 @@ export default function HUD({ scene }) {
         </div>
       )}
       {s.newman && !s.dialogue && !s.panel && <NewmanHud n={s.newman} />}
-      {s.lockTarget && !s.dialogue && <div className="locktip">Locked on · <span className="key">Space</span> + direction to sidestep / backhop · <span className="key">Tab</span> release</div>}
+      {s.lockTarget && !s.dialogue && !isTouch && <div className="locktip">Locked on · <span className="key">Space</span> + direction to sidestep / backhop · <span className="key">Tab</span> release</div>}
       {s.toast && <div className={'toast ' + s.toast.kind}>{s.toast.text}</div>}
       {showHelp && (
         <div className="help" onClick={() => setShowHelp(false)}>
           <h3>Controls</h3>
-          <table><tbody>
+          {isTouch && <table><tbody>
+            <tr><td>Move</td><td>Put your left thumb down anywhere on the left side and slide</td></tr>
+            <tr><td>Camera</td><td>Drag anywhere else on the screen</td></tr>
+            <tr><td>Attack · spin attack</td><td>Tap Attack · hold it, then let go</td></tr>
+            <tr><td>Roll · block · lock-on</td><td>Roll · hold Block · Lock (Roll + stick while locked to sidestep)</td></tr>
+            <tr><td>Talk / use</td><td>Talk (appears when something is near)</td></tr>
+            <tr><td>Items (Lantern, Shield, Ring…)</td><td>Use (appears when it can be used) · Back turns the Lantern −60°</td></tr>
+            <tr><td>Stance · Hookshot</td><td>Stance · Hook (once found)</td></tr>
+            <tr><td>Map · pause</td><td>Tap the minimap · Pause</td></tr>
+          </tbody></table>}
+          {!isTouch && <table><tbody>
             <tr><td>Move</td><td>WASD · left stick</td></tr>
             <tr><td>Camera</td><td>Click the game to capture the mouse, then move it · right stick · J/L</td></tr>
             <tr><td>Attack (3-hit combo)</td><td>Left click / F · X</td></tr>
@@ -70,8 +81,8 @@ export default function HUD({ scene }) {
             <tr><td>Newman Lantern: turn a bond +60° / −60° (once found)</td><td>G · Shift+G · LB</td></tr>
             <tr><td>Map (shows where to go next)</td><td>M</td></tr>
             <tr><td>Item menu · pause (items, notes, quest)</td><td>Esc / P</td></tr>
-          </tbody></table>
-          <p className="small">Click to close.</p>
+          </tbody></table>}
+          <p className="small">{isTouch ? 'Tap' : 'Click'} to close.</p>
         </div>
       )}
     </div>

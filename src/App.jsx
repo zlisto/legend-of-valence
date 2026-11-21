@@ -2,7 +2,8 @@ import { Component, useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { getState, setState, useGame, resetSave, saveGame, toast } from './engine/store'
 import { MOLECULES } from './data/molecules'
-import { initInput, releaseMouse, wasIntentionalRelease, captureMouse } from './engine/input'
+import { initInput, releaseMouse, wasIntentionalRelease, captureMouse, isTouch } from './engine/input'
+import TouchControls from './ui/TouchControls'
 import Intro, { IntroScene } from './scenes/Intro'
 import Village from './scenes/Village'
 import Caverns from './scenes/Caverns'
@@ -75,7 +76,7 @@ function Title({ onNew, onContinue, onLevel }) {
           <button className={canContinue ? '' : 'primary'} onClick={onNew}>{canContinue ? 'New game' : 'Start'}</button>
           <button className="ghost" onClick={() => setPicking(true)} title="Jump to any level">Level select</button>
         </div>
-        <p className="credit">Based on <i>Organic Chemistry: A Tenth Edition</i>, Chapters 1–12 — John McMurry, OpenStax (CC BY-NC-SA 4.0). Best with keyboard + mouse or a gamepad.</p>
+        <p className="credit">Based on <i>Organic Chemistry: A Tenth Edition</i>, Chapters 1–12 — John McMurry, OpenStax (CC BY-NC-SA 4.0). {isTouch ? 'On a phone: turn it sideways. Left thumb moves, drag on the right to look.' : 'Best with keyboard + mouse or a gamepad.'}</p>
       </div>
       {picking && <LevelSelect onGo={(it) => { setPicking(false); onLevel(it) }} onClose={() => setPicking(false)} />}
     </div>
@@ -91,6 +92,7 @@ export default function App() {
   const wrap = useRef()
 
   // one input system + pointer lock for the whole app
+  useEffect(() => { if (isTouch) document.body.classList.add('is-touch') }, [])
   useEffect(() => {
     const el = wrap.current
     const off = initInput(el)
@@ -187,7 +189,7 @@ export default function App() {
     <div className="app">
       <div ref={wrap} className="screen" style={{ visibility: show3d ? 'visible' : 'hidden' }}>
         <SceneGuard onReset={() => go('title')}>
-        <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 50, near: 0.1, far: 300, position: [0, 4, 16] }} gl={{ antialias: true, powerPreference: 'high-performance' }} frameloop={show3d && !mapOpen && !paused ? 'always' : 'never'}>
+        <Canvas shadows dpr={isTouch ? [1, 1.25] : [1, 1.5]} camera={{ fov: 50, near: 0.1, far: 300, position: [0, 4, 16] }} gl={{ antialias: true, powerPreference: 'high-performance' }} frameloop={show3d && !mapOpen && !paused ? 'always' : 'never'}>
           {screen === 'intro' && <IntroScene />}
           {screen === 'village' && <Village key={sceneKey} onExit={(to, cp) => exitTo(to, cp || { scene: 'caverns', room: 'entrance' })} />}
           {screen === 'caverns' && <Caverns key={sceneKey} onExit={(to) => go(to)} />}
@@ -220,6 +222,7 @@ export default function App() {
       {screen === 'title' && <Title onNew={onNew} onContinue={onContinue} onLevel={onLevel} />}
       {screen === 'intro' && <Intro onDone={() => { saveGame({ introSeen: true }); go('village') }} />}
       {playing && !cinematic && <HUD />}
+      {playing && isTouch && <TouchControls />}
       {playing && <Panels />}
       {playing && !cinematic && <MiniMap />}
       {playing && <FullMap />}
